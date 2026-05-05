@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vessel Dashboard v6 — UMass Boston IMPACT</title>
+  <meta name="description" content="Maritime AI Dashboard with NMEA 2000, Signal K, simulated telemetry and AI copilot." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- TOPBAR -->
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#43d8eb"/>
+              <stop offset="100%" stop-color="#1795a5"/>
+            </linearGradient>
+          </defs>
+          <path d="M6 32c6-.5 10-5 14-12 3 7 8 12 16 13 4 1 6 0 8-3-2 8-7 13-13 16-7 3-15 2-20-2-6-4-10-10-11-17 2 3 4 5 6 5Z" fill="url(#bg)"/>
+          <path d="M24 7c5 4 8 10 8 17 0 2 0 4-1 6-2-3-5-6-7-8-2 2-5 5-7 8-1-2-1-4-1-6 0-7 3-13 8-17Z"
+                stroke="#43d8eb" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">UMass Boston &middot; IMPACT Program</p>
+        <h1>Vessel Dashboard v6</h1>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="status-pill" id="connPill" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="connLabel">Signal K simulated</span>
+      </div>
+      <button id="themeBtn" class="icon-btn" aria-label="Toggle light/dark theme" title="Toggle theme">
+        <span id="themeIcon" aria-hidden="true">☀</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <main id="main" class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar panel" aria-label="Configuration and quick access panel">
+
+      <section class="sec-stack" aria-labelledby="apiTitle">
+        <div>
+          <p class="eyebrow">External connection</p>
+          <h2 id="apiTitle">Connect Python API</h2>
+        </div>
+        <label class="field-label" for="apiEndpoint">Copilot endpoint URL</label>
+        <input id="apiEndpoint" class="field" type="url"
+               placeholder="http://localhost:8000/api/copilot/chat"
+               aria-describedby="apiHelp" />
+        <button id="saveEndpoint" class="btn btn-primary btn-full">Connect endpoint</button>
+        <p id="apiHelp" class="field-help">
+          Sends <code>question</code>, <code>telemetry</code> and <code>source</code> as POST JSON.
+          See <strong>python_api_example.py</strong> for the example backend.
+        </p>
+      </section>
+
+      <section class="sec-stack" aria-labelledby="emergTitle">
+        <div class="sec-head sm">
+          <h2 id="emergTitle">Quick emergencies</h2>
+          <span class="mini-badge err">shortcuts</span>
+        </div>
+        <div class="chip-grid" role="group" aria-label="Emergency quick questions">
+          <button class="action-chip" data-q="What should I do in a man overboard (MOB) situation?">MOB</button>
+          <button class="action-chip" data-q="What should I do if there is a fire in the engine room?">Fire</button>
+          <button class="action-chip" data-q="What should I do if water is entering the hull?">Bilge</button>
+          <button class="action-chip" data-q="What should I do if I lose propulsion?">Propulsion</button>
+          <button class="action-chip" data-q="How do I broadcast a MAYDAY on VHF radio?">MAYDAY</button>
+        </div>
+      </section>
+
+      <section class="sec-stack" aria-labelledby="stackTitle">
+        <div class="sec-head sm">
+          <h2 id="stackTitle">Free stack</h2>
+          <span class="mini-badge acc">free &amp; open source</span>
+        </div>
+        <div id="freeStack" class="stack-list"></div>
+      </section>
+
+      <section class="sec-stack" aria-labelledby="checkTitle">
+        <div class="sec-head sm">
+          <h2 id="checkTitle">AI Checklist</h2>
+          <span class="mini-badge ok">recommendations</span>
+        </div>
+        <ul id="checklist" class="checklist" aria-label="Maintenance and safety checklist"></ul>
+      </section>
+
+    </aside>
+
+    <!-- CONTENT -->
+    <section class="content" aria-label="Main dashboard content">
+
+      <!-- HERO -->
+      <article class="hero panel" aria-label="Vessel status summary">
+        <div class="hero-copy">
+          <p class="eyebrow">Telemetry &middot; Diagnostics &middot; Artificial Intelligence</p>
+          <h2>Operational panel for monitoring, safety and on-board decisions</h2>
+          <p class="lead">
+            This interface consumes data from a Raspberry Pi with an NMEA 2000 gateway and Signal K,
+            and connects to a Python AI backend for real-time assistance.
+          </p>
+          <div class="badge-row">
+            <span class="soft-badge">NMEA 2000</span>
+            <span class="soft-badge">Signal K</span>
+            <span class="soft-badge">REST / JSON</span>
+            <span class="soft-badge">FastAPI ready</span>
+            <span class="soft-badge">Raspberry Pi</span>
+          </div>
+        </div>
+        <div class="hero-status surf-card" aria-label="Vessel general health">
+          <div class="ring-wrap" aria-label="Health index" role="img">
+            <svg class="status-ring" viewBox="0 0 108 108" aria-hidden="true">
+              <circle class="ring-track" cx="54" cy="54" r="48"></circle>
+              <circle class="ring-value" id="healthRing" cx="54" cy="54" r="48"></circle>
+            </svg>
+            <div class="ring-center">
+              <strong id="healthScore" aria-live="polite">--</strong>
+              <span>Health</span>
+            </div>
+          </div>
+          <div class="vessel-meta">
+            <div class="meta-row"><span>Vessel</span><strong id="vName">—</strong></div>
+            <div class="meta-row"><span>MMSI</span><strong id="vMmsi">—</strong></div>
+            <div class="meta-row"><span>Flag</span><strong id="vFlag">—</strong></div>
+            <div class="meta-row"><span>Updated</span><strong id="vTime">—</strong></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- KPIs -->
+      <section class="kpi-grid" aria-label="Real-time key indicators">
+        <article class="kpi panel" aria-label="Speed">
+          <div class="kpi-head"><span>Speed</span><span id="speedTrend" class="trend-badge flat">—</span></div>
+          <strong id="speedVal" aria-live="polite">—</strong>
+          <small>knots (SOG)</small>
+          <div id="speedSpark" class="sparkline" aria-hidden="true"></div>
+        </article>
+        <article class="kpi panel" aria-label="Heading">
+          <div class="kpi-head"><span>Heading</span><span class="trend-badge flat">COG</span></div>
+          <strong id="headingVal" aria-live="polite">—</strong>
+          <small>degrees true</small>
+          <div id="headingSpark" class="sparkline" aria-hidden="true"></div>
+        </article>
+        <article class="kpi panel" aria-label="Main engine RPM">
+          <div class="kpi-head"><span>Engine RPM</span><span id="rpmTrend" class="trend-badge flat">—</span></div>
+          <strong id="rpmVal" aria-live="polite">—</strong>
+          <small>revolutions per minute</small>
+          <div id="rpmSpark" class="sparkline" aria-hidden="true"></div>
+        </article>
+        <article class="kpi panel" aria-label="Battery state">
+          <div class="kpi-head"><span>House battery</span><span class="trend-badge flat">SOC</span></div>
+          <strong id="battVal" aria-live="polite">—</strong>
+          <small>volts &middot; percentage</small>
+          <div id="battSpark" class="sparkline" aria-hidden="true"></div>
+        </article>
+      </section>
+
+      <!-- NAV + ENGINE -->
+      <div class="two-col">
+        <article class="panel" aria-labelledby="navTitle">
+          <div class="sec-head">
+            <h2 id="navTitle">Navigation &amp; Environment</h2>
+            <span class="mini-badge">snapshot</span>
+          </div>
+          <div id="navGrid" class="metric-grid"></div>
+        </article>
+        <article class="panel" aria-labelledby="engTitle">
+          <div class="sec-head">
+            <h2 id="engTitle">Propulsion &amp; Power</h2>
+            <span class="mini-badge acc">engine PGNs</span>
+          </div>
+          <div id="engGrid" class="metric-grid"></div>
+        </article>
+      </div>
+
+      <!-- ALERTS + MAP -->
+      <div class="two-col">
+        <article class="panel" aria-labelledby="alertTitle">
+          <div class="sec-head">
+            <h2 id="alertTitle">Alerts &amp; Risk</h2>
+            <span class="mini-badge warn">priorities</span>
+          </div>
+          <div id="alertsList" class="alerts-list"></div>
+        </article>
+        <article class="panel" aria-labelledby="mapTitle">
+          <div class="sec-head">
+            <h2 id="mapTitle">Operational Map</h2>
+            <span class="mini-badge">bridge view</span>
+          </div>
+          <div class="map-card" role="img" aria-label="Visual representation of the vessel route and AIS traffic">
+            <div class="map-grid" aria-hidden="true"></div>
+            <div class="route route-main" aria-hidden="true"></div>
+            <div class="route route-alt"  aria-hidden="true"></div>
+            <div class="marker vessel"   title="Own vessel"></div>
+            <div class="marker target"   title="AIS target"></div>
+            <div class="marker waypoint" title="Next waypoint"></div>
+            <div class="map-legend" aria-label="Map legend">
+              <span><i class="ldot vessel"   aria-hidden="true"></i>Vessel</span>
+              <span><i class="ldot target"   aria-hidden="true"></i>AIS traffic</span>
+              <span><i class="ldot waypoint" aria-hidden="true"></i>Waypoint</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- CHAT + DATA -->
+      <div class="two-col">
+        <article class="panel chat-panel" aria-labelledby="chatTitle">
+          <div class="sec-head">
+            <h2 id="chatTitle">AI Copilot</h2>
+            <span class="mini-badge acc">AI</span>
+          </div>
+          <div class="prompt-bar" role="group" aria-label="Quick questions">
+            <button class="prompt-pill" data-q="Give me a summary of the vessel status.">Summary</button>
+            <button class="prompt-pill" data-q="How is the engine right now?">Engine</button>
+            <button class="prompt-pill" data-q="How is the power and battery?">Power</button>
+            <button class="prompt-pill" data-q="Which alerts need priority attention?">Alerts</button>
+          </div>
+          <div id="chatWindow" class="chat-window"
+               role="log" aria-live="polite" aria-label="AI copilot conversation history"></div>
+          <form id="chatForm" class="chat-form" novalidate>
+            <label for="chatInput" class="sr-only">Type your question to the maritime AI copilot</label>
+            <textarea id="chatInput" class="chat-input" rows="2"
+                      placeholder="Ask about vessel status, an emergency, or maintenance..."
+                      aria-required="true"></textarea>
+            <button type="submit" class="btn btn-send" aria-label="Send message">&#10148;</button>
+          </form>
+          <p class="field-help center" id="chatMode">Local mode active — no external endpoint configured.</p>
+        </article>
+
+        <article class="panel data-panel" aria-labelledby="dataTitle">
+          <div class="sec-head">
+            <h2 id="dataTitle">Technical Data</h2>
+            <span class="mini-badge">JSON / API</span>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Technical data views">
+            <button class="tab active" role="tab" data-tab="telemetry"
+                    aria-selected="true"  aria-controls="panel-telemetry">Telemetry</button>
+            <button class="tab"        role="tab" data-tab="api"
+                    aria-selected="false" aria-controls="panel-api">API</button>
+            <button class="tab"        role="tab" data-tab="events"
+                    aria-selected="false" aria-controls="panel-events">Events</button>
+          </div>
+          <div id="panel-telemetry" class="tab-panel active" role="tabpanel">
+            <pre id="telemetryPre" class="code-block" tabindex="0" aria-label="Full telemetry JSON"></pre>
+          </div>
+          <div id="panel-api" class="tab-panel" role="tabpanel">
+            <pre id="apiPre" class="code-block" tabindex="0" aria-label="API usage examples"></pre>
+          </div>
+          <div id="panel-events" class="tab-panel" role="tabpanel">
+            <div id="eventTimeline" class="timeline" aria-label="Voyage event timeline"></div>
+          </div>
+        </article>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
